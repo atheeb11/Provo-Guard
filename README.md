@@ -1,3 +1,13 @@
+---
+title: Provo Guard
+emoji: 🛡️
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+app_dir: guardian_ai_backend
+app_port: 7860
+---
+
 # 🛡️ PROVO GUARD
 > **AI Companion Against Cyber Extortion, Sextortion & Digital Exploitation**
 
