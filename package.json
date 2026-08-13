@@ -1,0 +1,10 @@
+{
+  "name": "provo-guard-root",
+  "version": "1.0.0",
+  "description": "Root package runner for Provo Guard",
+  "main": "guardian_ai_backend/src/server.js",
+  "scripts": {
+    "start": "cd guardian_ai_backend && npm start",
+    "install": "cd guardian_ai_backend && npm install"
+  }
+}
