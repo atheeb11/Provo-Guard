@@ -5,7 +5,7 @@ import '../../domain/models/threat_model.dart';
 import '../../domain/models/evidence_model.dart';
 
 class ApiService {
-  static const String baseUrl = 'https://zfmaht-ip-119-2-43-102.tunnelmole.net/api/v1';
+  static const String baseUrl = 'https://provo-guard.vercel.app/api/v1';
   static String authToken = '';
   static const _storage = FlutterSecureStorage();
 

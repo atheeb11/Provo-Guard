@@ -1,7 +1,7 @@
 name: guardian_ai_app
 description: "Guardian AI - AI Companion Against Cyber Extortion, Sextortion & Digital Exploitation"
 publish_to: 'none'
-version: 1.0.2+3
+version: 1.0.2+4
 
 environment:
   sdk: '>=3.2.0 <4.0.0'
