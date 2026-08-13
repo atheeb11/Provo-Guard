@@ -4,7 +4,6 @@ emoji: 🛡️
 colorFrom: blue
 colorTo: indigo
 sdk: docker
-app_dir: guardian_ai_backend
 app_port: 7860
 ---
 
