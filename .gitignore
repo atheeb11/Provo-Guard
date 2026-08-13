@@ -1,0 +1,23 @@
+# Dependencies & Build outputs
+node_modules/
+guardian_ai_backend/node_modules/
+guardian_ai_app/.dart_tool/
+guardian_ai_app/build/
+guardian_ai_app/.pub-cache/
+guardian_ai_app/.pub/
+
+# Environment & Secrets
+.env
+guardian_ai_backend/.env
+guardian_ai_backend/service-account.json
+
+
+# IDE & Editor files
+.idea/
+.vscode/
+*.swp
+*.ds_store
+.DS_Store
+
+# Temporary files
+*.log
