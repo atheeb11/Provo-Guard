@@ -1,27 +1,34 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/services/api_service.dart';
+import '../../../core/providers/profile_provider.dart';
 import '../../../domain/models/threat_model.dart';
 import 'package:intl/intl.dart';
 
-class ParentDashboardScreen extends StatefulWidget {
+class ParentDashboardScreen extends ConsumerStatefulWidget {
   const ParentDashboardScreen({super.key});
 
   @override
-  State<ParentDashboardScreen> createState() => _ParentDashboardScreenState();
+  ConsumerState<ParentDashboardScreen> createState() => _ParentDashboardScreenState();
 }
 
-class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
+class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen> {
   late Future<List<ThreatModel>> _threatLogsFuture;
 
   @override
   void initState() {
     super.initState();
     _threatLogsFuture = ApiService.getThreatLogs();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(profileProvider.notifier).fetchProfileFromApi();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final userProfile = ref.watch(profileProvider);
+
     return Scaffold(
       backgroundColor: AppColors.lightBackground,
       appBar: AppBar(
@@ -54,6 +61,7 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
               setState(() {
                 _threatLogsFuture = ApiService.getThreatLogs();
               });
+              await ref.read(profileProvider.notifier).fetchProfileFromApi();
             },
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
@@ -73,14 +81,17 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                             child: Icon(Icons.person, color: Colors.white, size: 30),
                           ),
                           const SizedBox(width: 14),
-                          const Expanded(
+                          Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Connected Child', style: TextStyle(fontSize: 12, color: AppColors.textSecondaryLight)),
-                                Text('Alex Johnson (Teen)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                                SizedBox(height: 2),
-                                Row(
+                                const Text('Connected Account', style: TextStyle(fontSize: 12, color: AppColors.textSecondaryLight)),
+                                Text(
+                                  userProfile.fullName.isNotEmpty ? userProfile.fullName : "User Account",
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                ),
+                                const SizedBox(height: 2),
+                                const Row(
                                   children: [
                                     Icon(Icons.check_circle, color: Colors.green, size: 14),
                                     SizedBox(width: 4),

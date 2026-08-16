@@ -81,7 +81,7 @@ class _ThreatMonitorScreenState extends State<ThreatMonitorScreen> {
                       controller: _inputController,
                       maxLines: 3,
                       decoration: InputDecoration(
-                        hintText: 'e.g. "Pay $500 or I post your photos to all followers..."',
+                        hintText: 'e.g. "Pay \$500 or I post your photos to all followers..."',
                         hintStyle: const TextStyle(fontSize: 13, color: AppColors.textSecondaryDark),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                         filled: true,

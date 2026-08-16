@@ -1,5 +1,5 @@
 name: guardian_ai_app
-description: "Guardian AI - AI Companion Against Cyber Extortion, Sextortion & Digital Exploitation"
+description: "Provo Guard - AI Companion Against Cyber Extortion, Sextortion & Digital Exploitation"
 publish_to: 'none'
 version: 1.0.2+4
 
@@ -22,6 +22,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   font_awesome_flutter: ^10.7.0
   percent_indicator: ^4.2.3
+  intl: ^0.20.2
 
   # Local Security, Storage & Encryption
   hive: ^2.2.3

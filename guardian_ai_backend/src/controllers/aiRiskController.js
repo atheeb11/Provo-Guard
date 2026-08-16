@@ -101,8 +101,8 @@ async function analyzeInteraction(req, res) {
     // Try Gemini API powered multimodal XAI analysis
     try {
       if (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== 'DEMO_GEMINI_API_KEY') {
-        const model = getGenerativeModel('gemini-flash-latest');
-        const prompt = `${SYSTEM_INSTRUCTIONS.THREAT_ANALYZER}\n\nApp Context: ${appSource || 'Social Media/Chat App'}\nMessage Text Content:\n"${contentToAnalyze}"`;
+        const model = getGenerativeModel('gemini-1.5-flash', SYSTEM_INSTRUCTIONS.THREAT_ANALYZER);
+        const prompt = `App Context: ${appSource || 'Social Media/Chat App'}\nMessage Text Content:\n"${contentToAnalyze}"`;
         
         const result = await model.generateContent(prompt);
         const responseText = result.response.text();
@@ -124,7 +124,7 @@ async function analyzeInteraction(req, res) {
     // Persist threat log in Firestore
     const db = getDb();
     const threatDoc = {
-      uid: req.user.uid,
+      uid: req.user?.uid || 'anonymous_user',
       ...analysisResult
     };
     const ref = await db.collection('threat_logs').add(threatDoc);
@@ -140,65 +140,94 @@ async function analyzeInteraction(req, res) {
 }
 
 /**
- * Trauma-Informed Safety Coach Chat Endpoint
+ * Provo Guard AI Assistant / Safety Coach Endpoint (Multi-Turn Supported)
  */
 async function chatSafetyCoach(req, res) {
   try {
     try { require('dotenv').config({ override: true }); } catch (e) {}
-    const { message, conversationHistory } = req.body;
-    if (!message) {
-      return res.status(400).json({ success: false, error: 'Message text is required.' });
+    const { message } = req.body;
+    
+    if (!message || typeof message !== 'string' || !message.trim()) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Message text is required and cannot be empty.' 
+      });
+    }
+
+    const trimmedMsg = message.trim();
+    const rawHistory = req.body.conversationHistory || req.body.history || [];
+    
+    // Convert history into Gemini SDK format ({ role: 'user' | 'model', parts: [{ text }] })
+    const formattedHistory = [];
+    const recentHistory = Array.isArray(rawHistory) ? rawHistory.slice(-10) : [];
+    
+    for (const item of recentHistory) {
+      if (!item || !item.text || typeof item.text !== 'string' || !item.text.trim()) continue;
+      const role = (item.sender === 'user' || item.role === 'user') ? 'user' : 'model';
+      formattedHistory.push({
+        role: role,
+        parts: [{ text: item.text.trim() }]
+      });
     }
 
     let reply = '';
-    let groundingTechnique = null;
+    let isSuccess = false;
 
-    try {
-      if (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== 'DEMO_GEMINI_API_KEY') {
-        const model = getGenerativeModel('gemini-flash-latest');
-        const prompt = `${SYSTEM_INSTRUCTIONS.SAFETY_COACH}\nUser Input: "${message}"`;
-        const result = await model.generateContent(prompt);
-        reply = result.response.text();
-      } else {
-        // Fallback trauma-informed response
-        reply = `I hear how stressful and uncomfortable this situation is, but I want you to remember something critical: **You have done nothing wrong.**\n\nWhen people use blackmail or extortion, their power comes entirely from fear and isolation. By reaching out here, you have already taken control back.\n\nHere are 3 steps we can take together right now:\n1. **Do not respond or pay** — extortionists rely on panic to demand more.\n2. **Lock your evidence** — tap the Evidence Vault button to save screenshots with encrypted timestamps.\n3. **Breathe with me** — let's do a 4-7-8 deep breathing cycle together.`;
+    console.log('[AI] Request received:', trimmedMsg.substring(0, 50));
+
+    if (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== 'DEMO_GEMINI_API_KEY') {
+      try {
+        console.log('[AI] Gemini request started with history length:', formattedHistory.length);
         
-        groundingTechnique = {
-          title: '5-4-3-2-1 Grounding Technique',
-          steps: [
-            '5 things you can see around you right now',
-            '4 things you can physically touch',
-            '3 things you can hear',
-            '2 things you can smell',
-            '1 deep breath in and out slowly'
-          ]
-        };
+        let model;
+        try {
+          model = getGenerativeModel('gemini-1.5-flash', SYSTEM_INSTRUCTIONS.PROVO_GUARD_AI);
+        } catch (e) {
+          model = getGenerativeModel('gemini-2.0-flash', SYSTEM_INSTRUCTIONS.PROVO_GUARD_AI);
+        }
+
+        const chat = model.startChat({
+          history: formattedHistory,
+        });
+
+        const result = await chat.sendMessage(trimmedMsg);
+        reply = result.response.text();
+        isSuccess = true;
+        console.log('[AI] Gemini response parsed successfully');
+      } catch (err) {
+        console.warn('[AI ERROR] Gemini request failed:', err.message);
       }
-    } catch (err) {
-      console.warn('[Safety Coach] Gemini call failed, using rule-based response:', err.message);
-      const lower = message.toLowerCase();
-      if (lower.includes('catfish') || lower.includes('scam')) {
-        reply = `To spot a catfishing scam, watch out for these key red flags:\n\n• **Refusal to video call:** They always have excuses or "connection issues."\n• **Professions in high-risk zones:** Claiming to be in the military, working on oil rigs, or traveling constantly.\n• **Perfect photos:** Their profile pictures look like professional models.\n• **Moving too fast:** Expressing deep feelings or professing love within days.\n• **Asking for financial help:** Requesting gift cards, crypto, or help with emergency bills.`;
-      } else if (lower.includes('link') || lower.includes('url') || lower.includes('click')) {
-        reply = `To verify if a link is safe to click:\n\n• **Inspect the spelling:** Fraudsters use lookalike domains (e.g. \`g00gle.com\` instead of \`google.com\`).\n• **Verify HTTPS:** Secure sites use \`https://\` and show a padlock icon.\n• **Use lookup tools:** You can check links using Google Safe Browsing or VirusTotal.\n• **Trust your gut:** If a stranger sends you a link out of nowhere, do not open it.`;
+    }
+
+    if (!isSuccess || !reply) {
+      // Fallback rule-based logic for offline/demo mode or rate limits
+      const lower = trimmedMsg.toLowerCase();
+      if (lower.includes('otp') || lower.includes('verification code') || lower.includes('pin')) {
+        reply = `⚠️ **CRITICAL WARNING:** Never share your OTP (One-Time Password) or verification codes with anyone!\n\n**Key Safety Rules:**\n• Banks, WhatsApp, and security teams will NEVER ask for your OTP over phone or chat.\n• Sharing an OTP allows attackers to hijack your account or transfer your funds.\n• If someone asked for your OTP, block them immediately and change your account passwords.`;
+      } else if (lower.includes('$10,000') || lower.includes('won') || lower.includes('prize') || lower.includes('claim')) {
+        reply = `Risk Level: HIGH\nCategory: SCAM / FINANCIAL FRAUD\n\nWhy it may be dangerous:\nThis message exhibits classic lottery/prize scam characteristics demanding immediate action or clicking unknown links.\n\nWarning signs:\n• Unsolicited prize claim\n• High urgency language ("immediately")\n• Request to click unverified links\n\nRecommended action:\n• Do not click any links.\n• Do not provide personal data or banking information.\n• Block the sender.`;
+      } else if (lower.includes('whatsapp') || lower.includes('protect') || lower.includes('secure')) {
+        reply = `Here is how to protect your WhatsApp account:\n\n1. **Enable Two-Step Verification:** Go to Settings > Account > Two-Step Verification > Turn On and set a 6-digit PIN.\n2. **Never Share Your Registration Code:** No one needs your 6-digit SMS code.\n3. **Set Profile Privacy:** Change your profile photo and status to "My Contacts".\n4. **Check Linked Devices:** Go to Settings > Linked Devices and log out of any unrecognized sessions.`;
+      } else if (lower.includes('what should i do') || lower.includes('how to respond')) {
+        reply = `Recommended Protective Steps:\n\n1. **Do not pay or comply:** Extortionists and scammers rely on fear to demand more.\n2. **Save Evidence:** Take clear screenshots and add them to your Encrypted Evidence Vault.\n3. **Block & Report:** Block the sender across all social platforms.\n4. **Reach Out:** Talk to a trusted contact or tap One-Tap Emergency if you feel unsafe.`;
       } else {
-        reply = `I am here to support you. Please remember:\n\n• **Do not share private photos or passwords.**\n• **Save any screenshots to your secure Evidence Vault.**\n• **You have done nothing wrong.**\n\nHow else can I help guide you through this situation?`;
+        reply = `I am Provo Guard AI, your digital-safety assistant.\n\nI can help you analyze suspicious messages, detect phishing links, protect your accounts, and guide you through online safety threats.\n\nPaste any suspicious content or ask me a security question to get started!`;
       }
     }
 
     res.json({
       success: true,
-      reply,
-      groundingTechnique,
-      crisisHotlines: [
-        { name: 'National Sexual Assault Hotline (RAINN)', phone: '1-800-656-4673', website: 'https://www.rainn.org' },
-        { name: 'Cyber Civil Rights Helpline', phone: '1-844-878-2274', website: 'https://www.cybercivilrights.org' },
-        { name: 'NCMEC CyberTipline', phone: '1-800-843-5678', website: 'https://www.report.cybertip.org' },
-        { name: '988 Suicide & Crisis Lifeline', phone: '988', text: 'Text 988' }
-      ]
+      message: reply,
+      reply: reply,
+      riskLevel: reply.includes('CRITICAL') ? 'CRITICAL' : reply.includes('HIGH') ? 'HIGH' : 'LOW'
     });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    console.error('[AI ERROR] Unexpected error in chatSafetyCoach:', error.message);
+    res.status(500).json({ 
+      success: false, 
+      message: 'The AI assistant is temporarily unavailable. Please try again.',
+      errorCode: 'AI_UNAVAILABLE' 
+    });
   }
 }
 

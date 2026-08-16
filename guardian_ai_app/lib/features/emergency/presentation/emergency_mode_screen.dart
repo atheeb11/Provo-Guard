@@ -1,18 +1,20 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/services/api_service.dart';
 import '../../../core/services/location_service.dart';
+import '../../../core/providers/profile_provider.dart';
 
-class EmergencyModeScreen extends StatefulWidget {
+class EmergencyModeScreen extends ConsumerStatefulWidget {
   const EmergencyModeScreen({super.key});
 
   @override
-  State<EmergencyModeScreen> createState() => _EmergencyModeScreenState();
+  ConsumerState<EmergencyModeScreen> createState() => _EmergencyModeScreenState();
 }
 
-class _EmergencyModeScreenState extends State<EmergencyModeScreen> {
+class _EmergencyModeScreenState extends ConsumerState<EmergencyModeScreen> {
   int _secondsRemaining = 3;
   Timer? _timer;
   bool _isActivated = false;
@@ -61,6 +63,17 @@ class _EmergencyModeScreenState extends State<EmergencyModeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final userProfile = ref.watch(profileProvider);
+    final userContacts = userProfile.emergencyContacts;
+
+    String contactsSummaryText;
+    if (userContacts.isNotEmpty) {
+      final names = userContacts.map((c) => c['name'] ?? 'Emergency Contact').join(', ');
+      contactsSummaryText = 'Alert sent to: $names & Police Cybercrime Unit.\nIncident Report PDF generated and locked in Vault.';
+    } else {
+      contactsSummaryText = 'Alert sent to: Police Cybercrime Unit.\n(No personal emergency contacts added yet - add in Account Settings).';
+    }
+
     return Scaffold(
       backgroundColor: _isActivated ? AppColors.darkBackground : AppColors.riskCritical.withOpacity(0.95),
       appBar: AppBar(
@@ -141,10 +154,10 @@ class _EmergencyModeScreenState extends State<EmergencyModeScreen> {
                         style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.green),
                       ),
                       const SizedBox(height: 8),
-                      const Text(
-                        'Alert sent to: Sarah Vance (Mother) & Police Cybercrime Unit.\nIncident Report PDF generated and locked in Vault.',
+                      Text(
+                        contactsSummaryText,
                         textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 13, color: AppColors.textSecondaryDark, height: 1.4),
+                        style: const TextStyle(fontSize: 13, color: AppColors.textSecondaryDark, height: 1.4),
                       ),
                       const SizedBox(height: 24),
                       ElevatedButton.icon(
@@ -172,3 +185,4 @@ class _EmergencyModeScreenState extends State<EmergencyModeScreen> {
     );
   }
 }
+

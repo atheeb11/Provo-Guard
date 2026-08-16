@@ -16,12 +16,23 @@ const app = express();
 app.set('trust proxy', 1);
 const PORT = process.env.PORT || 8080;
 
-// Security Middlewares
-app.use(helmet());
-app.use(cors());
+// Security & CORS Middlewares
+app.use(helmet({
+  crossOriginResourcePolicy: false,
+  crossOriginEmbedderPolicy: false
+}));
+
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'bypass-tunnel-reminder', 'x-requested-with'],
+  credentials: true
+}));
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(morgan('dev'));
+
 
 // Rate Limiting
 const limiter = rateLimit({
@@ -53,7 +64,7 @@ app.use('/api/v1/learning', learningRoutes);
 app.use(errorHandler);
 
 // Start Server
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`===================================================`);
   console.log(` PROVO GUARD - BACKEND REST API SERVER RUNNING     `);
   console.log(` Listening on Port: ${PORT}                      `);
@@ -62,4 +73,14 @@ app.listen(PORT, () => {
   console.log(`===================================================`);
 });
 
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.log(`\n[Server Notice] Port ${PORT} is already in use by an active backend instance.`);
+    console.log(`[Server Notice] Provo Guard backend service is active and listening at http://localhost:${PORT}`);
+  } else {
+    console.error('Server Error:', err.message);
+  }
+});
+
 module.exports = app;
+

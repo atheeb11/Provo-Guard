@@ -37,7 +37,7 @@ class _LearningCenterScreenState extends State<LearningCenterScreen> {
                   child: ChoiceChip(
                     label: const Center(child: Text('Fake Chat Simulator', style: TextStyle(fontWeight: FontWeight.bold))),
                     selected: _activeTab == 1,
-                    selectedColor: AppColors.accentShield,
+                    selectedColor: AppColors.primarySky,
                     onSelected: (selected) => setState(() => _activeTab = 1),
                   ),
                 ),
@@ -106,7 +106,7 @@ class _LearningCenterScreenState extends State<LearningCenterScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
-                      color: AppColors.accentShield.withOpacity(0.2),
+                      color: AppColors.primarySky.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(mod['badge'] as String, style: const TextStyle(fontSize: 10, color: AppColors.primaryLightSky, fontWeight: FontWeight.bold)),
@@ -146,14 +146,14 @@ class _LearningCenterScreenState extends State<LearningCenterScreen> {
                 border: Border.all(color: AppColors.darkBorder),
               ),
               child: const Text(
-                'Unknown Sender: "I have your Snapchat pictures. Pay $300 in Bitcoin right now or I send them to all your Instagram followers in 10 minutes."',
+                'Unknown Sender: "I have your Snapchat pictures. Pay \$300 in Bitcoin right now or I send them to all your Instagram followers in 10 minutes."',
                 style: TextStyle(fontSize: 13, fontStyle: FontStyle.italic, color: Colors.amber),
               ),
             ),
             const SizedBox(height: 20),
             const Text('Choose Your Response Strategy:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
             const SizedBox(height: 10),
-            _simulatorOption('Option A: Pay $300 immediately', false, 'INCORRECT: Extortionists will ask for more money. Never pay.'),
+            _simulatorOption('Option A: Pay \$300 immediately', false, 'INCORRECT: Extortionists will ask for more money. Never pay.'),
             const SizedBox(height: 8),
             _simulatorOption('Option B: Tap One-Tap Emergency & Lock Vault', true, 'CORRECT! Preserves evidence cryptographically and breaks panic leverage.'),
             const SizedBox(height: 8),

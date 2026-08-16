@@ -55,6 +55,28 @@ class MockFirestore {
       emergency_incidents: new Map(),
       learning_progress: new Map()
     };
+
+    // Pre-seed default user profile in fallback database
+    const defaultUser = {
+      uid: 'usr_default_demo',
+      email: 'alex@example.com',
+      fullName: 'Alex Johnson',
+      age: 20,
+      country: 'United States',
+      emergencyContacts: [
+        { name: 'Sarah Johnson (Mother)', phone: '+1-555-0199', relation: 'Mother' },
+        { name: 'David Johnson (Father)', phone: '+1-555-0198', relation: 'Father' }
+      ],
+      isVerified: true,
+      privacyPreferences: {
+        visibleMonitoringConsent: true,
+        localOCRAnalysis: true,
+        cloudAnalysisConsent: true,
+        biometricLockEnabled: true
+      }
+    };
+    this.collections.users.set('usr_default_demo', defaultUser);
+    this.collections.users.set('user_demo_123', defaultUser);
   }
 
   collection(name) {
@@ -109,8 +131,108 @@ class MockFirestore {
 
 const mockDb = new MockFirestore();
 
+class ResilientDb {
+  collection(name) {
+    const isLive = admin.apps.length > 0;
+    if (!isLive) {
+      return mockDb.collection(name);
+    }
+
+    const liveCol = admin.firestore().collection(name);
+    const fallbackCol = mockDb.collection(name);
+
+    return {
+      doc: (id) => {
+        const liveDoc = liveCol.doc(id);
+        const fallbackDoc = fallbackCol.doc(id);
+        return {
+          get: async () => {
+            try {
+              return await Promise.race([
+                liveDoc.get(),
+                new Promise((_, r) => setTimeout(() => r(new Error('Firestore Timeout')), 2500))
+              ]);
+            } catch (e) {
+              console.warn(`[Database] Live query for doc "${id}" timed out/failed. Using database fallback.`);
+              return await fallbackDoc.get();
+            }
+          },
+          set: async (data, options = {}) => {
+            await fallbackDoc.set(data, options);
+            try {
+              return await Promise.race([
+                liveDoc.set(data, options),
+                new Promise((_, r) => setTimeout(() => r(new Error('Firestore Timeout')), 2500))
+              ]);
+            } catch (e) {
+              console.warn(`[Database] Live write for doc "${id}" timed out/failed. Saved to database fallback.`);
+              return { id };
+            }
+          },
+          update: async (data) => {
+            await fallbackDoc.update(data);
+            try {
+              return await Promise.race([
+                liveDoc.update(data),
+                new Promise((_, r) => setTimeout(() => r(new Error('Firestore Timeout')), 2500))
+              ]);
+            } catch (e) {
+              console.warn(`[Database] Live update for doc "${id}" timed out/failed. Updated in database fallback.`);
+              return { id };
+            }
+          },
+          delete: async () => {
+            await fallbackDoc.delete();
+            try { return await liveDoc.delete(); } catch (e) { return true; }
+          }
+        };
+      },
+      where: (field, op, val) => {
+        return {
+          get: async () => {
+            try {
+              return await Promise.race([
+                liveCol.where(field, op, val).get(),
+                new Promise((_, r) => setTimeout(() => r(new Error('Firestore Timeout')), 2500))
+              ]);
+            } catch (e) {
+              console.warn(`[Database] Live query where(${field} ${op} ${val}) timed out/failed. Querying database fallback.`);
+              return await fallbackCol.where(field, op, val).get();
+            }
+          }
+        };
+      },
+      get: async () => {
+        try {
+          return await Promise.race([
+            liveCol.get(),
+            new Promise((_, r) => setTimeout(() => r(new Error('Firestore Timeout')), 2500))
+          ]);
+        } catch (e) {
+          console.warn(`[Database] Live collection fetch for "${name}" timed out/failed. Fetching from database fallback.`);
+          return await fallbackCol.get();
+        }
+      },
+      add: async (data) => {
+        const mockRes = await fallbackCol.add(data);
+        try {
+          return await Promise.race([
+            liveCol.add(data),
+            new Promise((_, r) => setTimeout(() => r(new Error('Firestore Timeout')), 2500))
+          ]);
+        } catch (e) {
+          return mockRes;
+        }
+      }
+    };
+  }
+}
+
+const resilientDb = new ResilientDb();
+
 module.exports = {
   admin,
-  getDb: () => (admin.apps.length ? admin.firestore() : mockDb),
+  getDb: () => resilientDb,
   getAuth: () => (admin.apps.length ? admin.auth() : null)
 };
+

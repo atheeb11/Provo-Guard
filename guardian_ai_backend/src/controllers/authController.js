@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const { getDb } = require('../config/firebase');
 const { JWT_SECRET } = require('../middleware/authMiddleware');
-const { sendVerificationEmail } = require('../services/emailService');
+const { sendVerificationEmail, sendProfileUpdateNotificationEmail, sendPasswordChangedNotificationEmail, sendPasswordResetOtpEmail } = require('../services/emailService');
 
 async function register(req, res) {
   try {
@@ -210,10 +210,178 @@ async function verifyOtp(req, res) {
   }
 }
 
+async function updateProfile(req, res) {
+  try {
+    const { fullName, email, age, country, emergencyContacts } = req.body;
+    const uid = req.user?.uid || 'usr_default_demo';
+
+    if (!fullName || !email) {
+      return res.status(400).json({ success: false, error: 'Full Name and Email are required.' });
+    }
+
+    const db = getDb();
+
+    const updatePayload = {
+      fullName,
+      email,
+      age: age ? parseInt(age) : 20,
+      country: country || 'United States',
+      updatedAt: new Date().toISOString()
+    };
+
+    if (Array.isArray(emergencyContacts)) {
+      updatePayload.emergencyContacts = emergencyContacts;
+    }
+
+    await db.collection('users').doc(uid).set(updatePayload, { merge: true });
+
+    // Send email notification to user
+    const changesSummary = `Name: ${fullName}, Email: ${email}, Country: ${country}, Age: ${age}`;
+    await sendProfileUpdateNotificationEmail(email, fullName, changesSummary);
+
+    res.json({
+      success: true,
+      message: 'Account profile updated successfully in database and confirmation email sent.',
+      user: {
+        uid,
+        ...updatePayload
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+}
+
+async function changePassword(req, res) {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const uid = req.user?.uid || 'usr_default_demo';
+    const email = req.user?.email || 'alex@example.com';
+    const name = req.user?.name || 'Alex Johnson';
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ success: false, error: 'Current password and new password are required.' });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ success: false, error: 'New password must be at least 6 characters long.' });
+    }
+
+    const db = getDb();
+    
+    // Update password state in database user record
+    await db.collection('users').doc(uid).set({
+      password: newPassword,
+      passwordUpdatedAt: new Date().toISOString()
+    }, { merge: true });
+
+    // Dispatch security alert email to user
+    await sendPasswordChangedNotificationEmail(email, name);
+
+    res.json({
+      success: true,
+      message: 'Password updated successfully in database. Security alert sent to your email.'
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+}
+
+async function forgotPassword(req, res) {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ success: false, error: 'Email address is required.' });
+    }
+
+    const db = getDb();
+    const snapshot = await db.collection('users').where('email', '==', email).get();
+
+    if (snapshot.docs.length === 0) {
+      return res.status(404).json({ success: false, error: 'No account found with this email address.' });
+    }
+
+    const userDoc = snapshot.docs[0];
+    const user = userDoc.data();
+    const resetOtp = Math.floor(100000 + Math.random() * 900000).toString();
+    const resetOtpExpiry = new Date(Date.now() + 15 * 60000).toISOString(); // 15 mins
+
+    await db.collection('users').doc(user.uid).set({
+      resetOtp,
+      resetOtpExpiry
+    }, { merge: true });
+
+    // Send password reset OTP email via Brevo
+    await sendPasswordResetOtpEmail(email, user.fullName, resetOtp);
+
+    res.json({
+      success: true,
+      message: 'A 6-digit password reset OTP has been sent to your email.',
+      email
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+}
+
+async function resetPassword(req, res) {
+  try {
+    const { email, otp, newPassword } = req.body;
+    if (!email || !otp || !newPassword) {
+      return res.status(400).json({ success: false, error: 'Email, OTP code, and new password are required.' });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ success: false, error: 'New password must be at least 6 characters long.' });
+    }
+
+    const db = getDb();
+    const snapshot = await db.collection('users').where('email', '==', email).get();
+
+    if (snapshot.docs.length === 0) {
+      return res.status(404).json({ success: false, error: 'User profile not found.' });
+    }
+
+    const userDoc = snapshot.docs[0];
+    const user = userDoc.data();
+
+    // Verify Reset OTP
+    if (user.resetOtp === otp && user.resetOtpExpiry && new Date(user.resetOtpExpiry) > new Date()) {
+      const updatedUser = {
+        ...user,
+        password: newPassword,
+        passwordUpdatedAt: new Date().toISOString()
+      };
+      delete updatedUser.resetOtp;
+      delete updatedUser.resetOtpExpiry;
+
+      await db.collection('users').doc(user.uid).set(updatedUser);
+
+      // Send security confirmation email
+      await sendPasswordChangedNotificationEmail(email, user.fullName);
+
+      return res.json({
+        success: true,
+        message: 'Password reset successfully! You can now log in with your new password.'
+      });
+    } else {
+      return res.status(400).json({ success: false, error: 'Invalid or expired password reset OTP.' });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+}
+
 module.exports = {
   register,
   login,
   verifyOtp,
   getProfile,
-  updateEmergencyContacts
+  updateProfile,
+  changePassword,
+  updateEmergencyContacts,
+  forgotPassword,
+  resetPassword
 };
+
+

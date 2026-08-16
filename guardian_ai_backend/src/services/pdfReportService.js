@@ -104,7 +104,7 @@ function createPDFIncidentReport(incidentData) {
       doc
         .fontSize(8)
         .fillColor('#64748B')
-        .text('CONFIDENTIAL & PRIVILEGED REPORT — Prepared by Guardian AI Protection Engine for Law Enforcement & Emergency Responders.', 40, 720, { align: 'center' });
+        .text('CONFIDENTIAL & PRIVILEGED REPORT — Prepared by Provo Guard Protection Engine for Law Enforcement & Emergency Responders.', 40, 720, { align: 'center' });
 
       doc.end();
     } catch (err) {

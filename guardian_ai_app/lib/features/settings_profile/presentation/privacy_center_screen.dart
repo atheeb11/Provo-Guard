@@ -29,7 +29,7 @@ class PrivacyCenterScreen extends ConsumerWidget {
                     SizedBox(width: 14),
                     Expanded(
                       child: Text(
-                        'ZERO-TRUST PRIVACY POLICY\nGuardian AI processes OCR data locally on-device and requires explicit consent before any cloud risk evaluation.',
+                        'ZERO-TRUST PRIVACY POLICY\nProvo Guard processes OCR data locally on-device and requires explicit consent before any cloud risk evaluation.',
                         style: TextStyle(fontSize: 12, height: 1.4),
                       ),
                     ),

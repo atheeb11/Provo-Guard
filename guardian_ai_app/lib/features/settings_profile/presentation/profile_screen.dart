@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/services/location_service.dart';
 import '../../../core/providers/theme_provider.dart';
 import '../../../core/providers/profile_provider.dart';
 import '../../../core/services/api_service.dart';
@@ -15,19 +14,12 @@ class ProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
-  String _detectedCountry = "Detecting country...";
-
   @override
   void initState() {
     super.initState();
-    _loadLocationAndCountry();
-  }
-
-  Future<void> _loadLocationAndCountry() async {
-    final country = await LocationService.detectUserCountry();
-    if (mounted) {
-      ref.read(profileProvider.notifier).updateProfile(country: country);
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(profileProvider.notifier).fetchProfileFromApi();
+    });
   }
 
   @override

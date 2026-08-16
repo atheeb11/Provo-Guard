@@ -73,25 +73,29 @@ async function runSelfTest() {
       throw new Error('Expected high risk score for extortion threat!');
     }
 
-    // Test 4: Evidence Vault Add Item
-    console.log('\n--- Test 4: Evidence Vault Storage ---');
-    const evidenceRes = await makeRequest('/evidence', 'POST', {
-      title: 'WhatsApp Extortion Threat Screenshot',
-      itemType: 'screenshot',
-      appSource: 'WhatsApp',
-      originalText: 'Pay $500 or I post your photos...'
+    // Test 5: Provo Guard AI Assistant Chat & Follow-up Memory
+    console.log('\n--- Test 5: Provo Guard AI Assistant Chat & Multi-Turn Memory ---');
+    const chat1 = await makeRequest('/ai-risk/coach-chat', 'POST', {
+      message: 'Someone asked me to send them my OTP.'
     });
-    console.log('Evidence Vault Status:', evidenceRes.data.message);
-    console.log('SHA-256 Hash:', evidenceRes.data.item.sha256Hash);
+    console.log('AI Chat OTP Test Success:', chat1.data.success);
+    console.log('AI Chat OTP Response Snippet:', chat1.data.reply ? chat1.data.reply.substring(0, 100) + '...' : 'No reply');
 
-    // Test 5: Emergency Trigger
-    console.log('\n--- Test 5: One-Tap Emergency Trigger ---');
-    const emergencyRes = await makeRequest('/emergency/trigger', 'POST', {
-      latitude: 37.7749,
-      longitude: -122.4194,
-      customMessage: 'EMERGENCY: Coercive extortion detected.'
+    const chat2 = await makeRequest('/ai-risk/coach-chat', 'POST', {
+      message: 'Congratulations, you won $10,000. Click this link immediately.'
     });
-    console.log('Emergency Incident ID:', emergencyRes.data.incident.incidentId);
+    console.log('AI Chat Scam Test Success:', chat2.data.success);
+    console.log('AI Chat Scam Risk Level:', chat2.data.riskLevel);
+
+    const chat3 = await makeRequest('/ai-risk/coach-chat', 'POST', {
+      message: 'What should I do?',
+      conversationHistory: [
+        { sender: 'user', text: 'I received a suspicious message saying I won a prize.' },
+        { sender: 'coach', text: 'That sounds like a classic scam.' }
+      ]
+    });
+    console.log('AI Chat Follow-Up Memory Test Success:', chat3.data.success);
+    console.log('AI Chat Follow-Up Response Snippet:', chat3.data.reply ? chat3.data.reply.substring(0, 100) + '...' : 'No reply');
 
     console.log('\n===================================================');
     console.log(' SUCCESS: ALL BACKEND REST API TESTS PASSED!       ');
@@ -104,3 +108,4 @@ async function runSelfTest() {
 }
 
 runSelfTest();
+

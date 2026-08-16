@@ -19,5 +19,7 @@ guardian_ai_backend/service-account.json
 *.ds_store
 .DS_Store
 
-# Temporary files
+# Temporary & Binary files
 *.log
+*.apk
+Provo_Guard_v1.0.apk
