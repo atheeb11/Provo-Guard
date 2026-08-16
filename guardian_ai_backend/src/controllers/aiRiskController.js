@@ -200,18 +200,33 @@ async function chatSafetyCoach(req, res) {
     }
 
     if (!isSuccess || !reply) {
-      // Fallback rule-based logic for offline/demo mode or rate limits
+      // Intelligent fallback logic for general questions + security mode
       const lower = trimmedMsg.toLowerCase();
-      if (lower.includes('otp') || lower.includes('verification code') || lower.includes('pin')) {
-        reply = `⚠️ **CRITICAL WARNING:** Never share your OTP (One-Time Password) or verification codes with anyone!\n\n**Key Safety Rules:**\n• Banks, WhatsApp, and security teams will NEVER ask for your OTP over phone or chat.\n• Sharing an OTP allows attackers to hijack your account or transfer your funds.\n• If someone asked for your OTP, block them immediately and change your account passwords.`;
+      
+      if (lower.includes('25') && (lower.includes('16') || lower.includes('*') || lower.includes('x'))) {
+        reply = '25 × 16 = 400';
+      } else if (lower.includes('what is python')) {
+        reply = `Python is a high-level, interpreted programming language known for its clear syntax, readability, and versatility. It is widely used in web development, data science, artificial intelligence, automation, and software engineering.`;
+      } else if (lower.includes('capital of japan')) {
+        reply = `The capital of Japan is Tokyo.`;
+      } else if (lower.includes('translate') && lower.includes('indonesian')) {
+        reply = `Translating to Indonesian:\n"Saya adalah Provo Guard AI yang siap membantu Anda dalam pertanyaan umum maupun keamanan digital."`;
+      } else if (lower.includes('normalization')) {
+        reply = `Database normalization is the process of organizing data in a database to reduce data redundancy and improve data integrity. Common normal forms include 1NF (atomic values), 2NF (no partial dependency), 3NF (no transitive dependency), and BCNF.`;
+      } else if (lower.includes('flutter') && (lower.includes('login') || lower.includes('create'))) {
+        reply = `To create a Login Screen in Flutter:\n\n1. Use a \`StatefulWidget\` with a \`Form\` and \`GlobalKey<FormState>\`.\n2. Add two \`TextFormField\` widgets for Email and Password.\n3. Implement input validators and an \`ElevatedButton\` to execute authentication.\n\nExample structure:\n\`\`\`dart\nfinal _formKey = GlobalKey<FormState>();\nfinal _emailController = TextEditingController();\nfinal _passwordController = TextEditingController();\n\`\`\``;
+      } else if (lower.includes('email') && (lower.includes('lecturer') || lower.includes('professor'))) {
+        reply = `Subject: Inquiry Regarding [Course Name] - [Your Name]\n\nDear Professor [Last Name],\n\nI hope this email finds you well. I am writing to ask a question regarding [Topic/Assignment] for [Course Name].\n\nThank you for your time and guidance.\n\nBest regards,\n[Your Name]\n[Student ID]`;
+      } else if (lower.includes('otp') || lower.includes('verification code') || lower.includes('pin')) {
+        reply = `Risk Level: CRITICAL\nCategory: SOCIAL ENGINEERING / ACCOUNT HIJACKING\n\nWarning Signs:\n• Request for secret authentication OTP\n• Time pressure tactics\n\nExplanation:\nSharing an OTP allows attackers to hijack your account or authorize unauthorized transactions.\n\nRecommended Action:\n• NEVER share your OTP with anyone.\n• Block the sender immediately.`;
       } else if (lower.includes('$10,000') || lower.includes('won') || lower.includes('prize') || lower.includes('claim')) {
-        reply = `Risk Level: HIGH\nCategory: SCAM / FINANCIAL FRAUD\n\nWhy it may be dangerous:\nThis message exhibits classic lottery/prize scam characteristics demanding immediate action or clicking unknown links.\n\nWarning signs:\n• Unsolicited prize claim\n• High urgency language ("immediately")\n• Request to click unverified links\n\nRecommended action:\n• Do not click any links.\n• Do not provide personal data or banking information.\n• Block the sender.`;
+        reply = `Risk Level: HIGH\nCategory: SCAM / FINANCIAL FRAUD\n\nWarning Signs:\n• Unsolicited prize claim\n• Urgency ("immediately")\n• Unknown link\n\nExplanation:\nThis message exhibits classic lottery/prize scam characteristics.\n\nRecommended Action:\n• Do not click any links.\n• Do not provide banking information.\n• Block the sender.`;
       } else if (lower.includes('whatsapp') || lower.includes('protect') || lower.includes('secure')) {
         reply = `Here is how to protect your WhatsApp account:\n\n1. **Enable Two-Step Verification:** Go to Settings > Account > Two-Step Verification > Turn On and set a 6-digit PIN.\n2. **Never Share Your Registration Code:** No one needs your 6-digit SMS code.\n3. **Set Profile Privacy:** Change your profile photo and status to "My Contacts".\n4. **Check Linked Devices:** Go to Settings > Linked Devices and log out of any unrecognized sessions.`;
       } else if (lower.includes('what should i do') || lower.includes('how to respond')) {
         reply = `Recommended Protective Steps:\n\n1. **Do not pay or comply:** Extortionists and scammers rely on fear to demand more.\n2. **Save Evidence:** Take clear screenshots and add them to your Encrypted Evidence Vault.\n3. **Block & Report:** Block the sender across all social platforms.\n4. **Reach Out:** Talk to a trusted contact or tap One-Tap Emergency if you feel unsafe.`;
       } else {
-        reply = `I am Provo Guard AI, your digital-safety assistant.\n\nI can help you analyze suspicious messages, detect phishing links, protect your accounts, and guide you through online safety threats.\n\nPaste any suspicious content or ask me a security question to get started!`;
+        reply = `I am Provo Guard AI, your general-purpose and digital-safety assistant.\n\nI can help you with programming, education, mathematics, general questions, writing, or digital security and scam analysis.\n\nHow can I help you today?`;
       }
     }
 

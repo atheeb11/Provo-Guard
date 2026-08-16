@@ -19,7 +19,7 @@ class _AICoachScreenState extends State<AICoachScreen> {
   final List<Map<String, dynamic>> _messages = [
     {
       'sender': 'coach',
-      'text': 'Hi! I\'m your Provo Guard AI Safety Assistant. How can I help protect your digital life today?'
+      'text': 'Hi! I\'m Provo Guard AI, your general-purpose & digital-safety assistant. Ask me anything from programming, education, and general knowledge to digital security and scam analysis!'
     }
   ];
   
@@ -27,12 +27,12 @@ class _AICoachScreenState extends State<AICoachScreen> {
   final ImagePicker _picker = ImagePicker();
 
   final List<String> _suggestedQuestions = [
+    'What is Python?',
     'Check a suspicious message',
-    'Is this link suspicious?',
-    'Someone is asking for my OTP',
-    'Is this a scam?',
-    'How do I secure my account?',
-    'Explain this security warning',
+    'How do I create a Flutter login screen?',
+    'Someone asked for my OTP',
+    'Explain database normalization',
+    'Is this link safe to click?',
   ];
 
   @override
