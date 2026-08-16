@@ -19,7 +19,7 @@ class _AICoachScreenState extends State<AICoachScreen> {
   final List<Map<String, dynamic>> _messages = [
     {
       'sender': 'coach',
-      'text': 'Hi! I\'m Provo Guard AI, your general-purpose & digital-safety assistant. Ask me anything from programming, education, and general knowledge to digital security and scam analysis!'
+      'text': 'Hi! I\'m Provo Guard AI, your general-purpose, digital-safety & legal-information assistant.\n\nI can help answer everyday questions, general knowledge, programming, cyber safety, and responsible legal information. How can I assist you today?'
     }
   ];
   
@@ -28,11 +28,12 @@ class _AICoachScreenState extends State<AICoachScreen> {
 
   final List<String> _suggestedQuestions = [
     'What is Python?',
-    'Check a suspicious message',
-    'How do I create a Flutter login screen?',
+    'Can my landlord do this?',
+    'Is hacking someone illegal?',
+    'What does breach of contract mean?',
+    'Can I report an online scam?',
     'Someone asked for my OTP',
-    'Explain database normalization',
-    'Is this link safe to click?',
+    'How do I create a Flutter login screen?',
   ];
 
   @override
@@ -78,7 +79,7 @@ class _AICoachScreenState extends State<AICoachScreen> {
     setState(() {
       _messages.add({
         'sender': 'user',
-        'text': text.isNotEmpty ? text : 'Uploaded attachment for threat scanning.',
+        'text': text.isNotEmpty ? text : 'Uploaded attachment for threat & legal document inspection.',
         'imagePath': customImage?.path,
         'attachmentType': attachmentType,
         'attachmentPath': attachmentPath,
@@ -97,9 +98,9 @@ class _AICoachScreenState extends State<AICoachScreen> {
           _isSending = false;
           String coachText = '';
           if (type == 'image') {
-            coachText = 'I have received your image attachment and completed the AI safety scan.\n\n⚠️ **Analysis Warning:** This document contains a Passport or Government ID template scan. Sharing identification documents over unverified chats poses high risks of identity theft or blackmail leverage.\n\n**Action Steps:**\n• Do not share this image with unverified accounts.\n• Save this securely to your Evidence Vault if someone is demanding it.';
+            coachText = 'I have received your image attachment and completed the AI safety & document scan.\n\n⚠️ **Analysis Warning:** This document contains a Passport or Government ID template scan. Sharing identification documents over unverified chats poses high risks of identity theft or blackmail leverage.\n\n**Action Steps:**\n• Do not share this image with unverified accounts.\n• Save this securely to your Evidence Vault if someone is demanding it.';
           } else if (type == 'pdf') {
-            coachText = 'I have received your PDF document and ran our ML safety check.\n\n⚠️ **Analysis Warning:** We detected legal threats and urgency clauses matching an extortion demand script inside the PDF payload.\n\n**Action Steps:**\n• Stop direct contact with the sender.\n• File an online report using our Reports portal.\n• Save this document to the Encrypted Evidence Vault.';
+            coachText = 'I have analyzed your PDF document in **Legal Information Mode**.\n\n**What the Document Says:**\n• Document contains legal notices and contractual term clauses.\n• Key terms highlight binding commitments and potential dispute clauses.\n\n**What the Law May Require:**\n• Contract enforceability depends strictly on your local jurisdiction and governing statutory laws.\n• Clauses asserting automatic waivers of legal rights may not be enforceable in all jurisdictions.\n\n**Next Steps:**\n• Prepare specific questions for a qualified local attorney before signing.\n• Store a copy in your Encrypted Evidence Vault.';
           } else if (type == 'video') {
             coachText = 'I have received your video file attachment and completed the threat scan.\n\n⚠️ **Analysis Warning:** The video format/metadata matches typical media shared in catfishing and grooming pressure loops. Please ensure this media is not shared publicly.\n\n**Action Steps:**\n• Keep your private media protected.\n• Block the requesting user immediately.';
           } else if (type == 'audio') {

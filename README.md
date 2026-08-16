@@ -21,7 +21,10 @@ Provo Guard is a production-grade digital safety application designed to protect
 
 ## 🌟 Key Features & Highlights
 
-- 🤖 **Google Gemini 1.5 AI Assistant (Multi-Turn Chat Memory)**: Intelligent digital-safety assistant powered by Google AI Studio (`gemini-1.5-flash`). Helps users analyze suspicious DMs, detect phishing links, protect WhatsApp/social accounts, and respond safely to digital threats. Features native multi-turn conversation memory (`startChat({ history })`), quick action chips, and clear chat history options.
+- 🤖 **Triple-Mode Google Gemini AI Assistant (General + Security + Legal Information)**: Intelligent assistant powered by Google AI Studio (`gemini-1.5-flash` / `gemini-2.0-flash`). Operates across three dynamic modes:
+  1. **General Mode**: Answers general knowledge, programming (Python, Flutter, JS), mathematics, assignments, and everyday questions.
+  2. **Security Mode**: Analyzes suspicious messages, phishing links, OTP demands, sextortion, and account safety.
+  3. **Responsible Legal Information Mode**: Jurisdiction-aware legal information covering rights, contracts, landlord-tenant disputes, immigration, cybercrime, and police inquiries. Features strict guardrails forbidding non-lawyer claims ("This is definitely the law", "I am your lawyer"), a 7-part legal answer format, dual Security+Legal analysis, and high-risk legal counsel recommendations.
 - 🎯 **AI Risk Engine (0-100 Score & XAI)**: Multimodal threat classifier delivering transparent Explainable AI (XAI) rationale, severity levels (Safe, Low, Medium, High, Critical), red flag breakdowns, and actionable mitigation steps.
 - 🌐 **Global Country Dial Code Selector**: Searchable dial code modal picker supporting **190+ countries worldwide** (calling codes and flags) for user registration.
 - 📍 **Real-Time GPS Tracking & Reverse Geocoding**: High-accuracy device GPS tracking via Geolocator integrated with OpenStreetMap / Nominatim API for live city/country geocoding and real distance calculation to nearby safe havens.

@@ -10,7 +10,7 @@
 The platform combines a **Cross-Platform Mobile Application** (built with Flutter 3.x and Dart 3.x), a **Scalable Cloud REST API Service** (built with Node.js v18/v20 and Express.js), a **NoSQL Cloud Database** (Firebase Firestore), and an **AI Threat Engine** powered by Google AI Studio's **Gemini 1.5 Flash** LLM model (`@google/generative-ai` SDK v0.21.0).
 
 ### Key Architectural Strengths:
-- **Dual-Engine AI Assistant**: Operates as a general-purpose educational AI while automatically switching into specialized digital-safety mode when threat-related keywords or suspicious messages are submitted.
+- **Triple-Mode AI Assistant**: Operates as a general-purpose educational AI while automatically switching into specialized digital-safety mode (for threats & scams) and Responsible Legal Information Mode (for laws, contracts, rights, immigration, and legal questions with strict non-lawyer guardrails and jurisdiction checks).
 - **Explainable AI (XAI)**: Delivers transparent threat scoring (0–100 scale), threat categorization, red flag breakdowns, and actionable protective guidance without technical jargon.
 - **Hardware & Cloud Location Integration**: Features real-time GPS hardware location tracking via `geolocator` combined with OpenStreetMap Nominatim reverse geocoding to calculate live distances to nearby emergency havens (police stations and crisis shelters).
 - **Tamper-Evident Evidence Vault**: Provides local AES-256 encrypted storage (`flutter_secure_storage`) paired with SHA-256 cryptographic hashing to maintain legal chain of custody for court and police reporting.
